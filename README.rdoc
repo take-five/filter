@@ -1,0 +1,22 @@
+== Synopsys
+Enumerable#filter - extended Enumerable#select
+
+== Examples
+String filter (acts like Enumerable#grep):
+  [1, 2, 3, 'ab'].filter(/a/)              # => #<Enumerator: ['ab']>
+  [1, 2, 3, '3'].filter('3')               # => #<Enumerator: ['3']>
+
+You can pass a <tt>Proc</tt> or <tt>Symbol</tt>. Methods and blocks are allowed too:
+  [1, 2, 3].filter(&:even?)                # => #<Enumerator: [2]>
+  [1, 2, 3].filter(:even?)                 # => #<Enumerator: [2]>
+  [1, 2, 4].filter { |num| num.even? }     # => #<Enumerator: [2, 4]>
+
+<tt>Enumerable#filter</tt> can match against enumerable items attributes. Like this:
+  [1, 2, 3, 4.2].filter :to_i => :even?    # => #<Enumerator: [2, 4]>
+
+If the block is supplied, each matching element is passed to it, and the block’s result is stored in the output enumerator.
+  [1, 2, 4].filter(&:even?) { |n| n + 1 }  # => #<Enumerator: [3, 5]>
+
+<tt>Enumerable#filter</tt> also accepts <tt>true</tt> or <tt>false</tt> as argument:
+  [0, false, 2, nil].filter(true)          # => #<Enumerator: [0, 2]>
+  [0, false, 2, nil].filter(false)         # => #<Enumerator: [false, nil]>
