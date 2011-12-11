@@ -1,3 +1,5 @@
+require 'deferred_enum'
+
 # == Synpsys
 # Extension for Ruby Enumerable module
 #
@@ -23,52 +25,38 @@ module Enumerable
     pattern, block = block, nil if block_given? && pattern.nil?
 
     filtered = case pattern
-      when NilClass then lazy_select { true }
+      when NilClass then defer
 
       when Class, Module then
-        lazy_select do |e|
+        defer.select do |e|
           e.is_a?(Class) || e.is_a?(Module) ?
               e <= pattern :
               e.is_a?(pattern)
         end
 
-      when Symbol, Proc, Method then lazy_select(&pattern.to_proc)
+      when Symbol, Proc, Method then defer.select(&pattern.to_proc)
 
       when Array then # enum.filter [:even?, :positive?, :cool?, proc { |n| n < 10 }]
-        pattern.reduce(self) do |chain, local_pattern|
-          chain.lazy_select(&local_pattern.to_proc)
+        pattern.reduce(self.defer) do |chain, local_pattern|
+          chain.select(&local_pattern.to_proc)
         end
 
       when Hash then # enum.filter :to_i => :even?, :ceil => :odd?
-        pattern.reduce(self) do |chain, pair|
+        pattern.reduce(self.defer) do |chain, pair|
           attr, local_pattern = pair.map(&:to_proc)
 
-          chain.lazy_select do |element|
+          chain.select do |element|
             local_pattern.call(attr.call(element))
           end
         end
 
-      when TrueClass, FalseClass then lazy_select { |e| !!e == pattern }
+      when TrueClass, FalseClass then defer.select { |e| !!e == pattern }
 
-      else lazy_select { |e| pattern === e } # otherwise - String, Regexp, Numeric etc.
+      else defer.select { |e| pattern === e } # otherwise - String, Regexp, Numeric etc.
     end
 
     # also transform elements if block given
-    block ? filtered.lazy_map(&block) : filtered
+    block ? filtered.map(&block) : filtered
   end
 
-  protected
-  # Lazy version of built-in Enumerable#select
-  def lazy_select
-    Enumerator.new do |yielder|
-      each { |entry| yielder << entry if yield(entry) }
-    end
-  end
-
-  # Lazy version of built-in Enumerable#collect
-  def lazy_map #:nodoc:
-    Enumerator.new do |yielder|
-      each { |entry| yielder << yield(entry) }
-    end
-  end
 end
