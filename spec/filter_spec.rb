@@ -57,4 +57,14 @@ describe Enumerable do
   it "should match using OR operator" do
     [0, 2, 3, 4].filter(:zero?, :odd?).should == [0, 3]
   end
+
+  it "should be flexible" do
+    conditions = Filter.match(:even?) | :odd? | :zero?
+
+    [0, 1, 2].filter(conditions).should == [0, 1, 2]
+
+    # 0 and negative
+    conditions = Filter.and(:zero?, :even?) | proc { |n| n < 0 }
+    [-1, 0, 1].filter(conditions).should == [-1, 0]
+  end
 end

@@ -1,3 +1,7 @@
+require "filter/condition"
+require "filter/or"
+require "filter/and"
+
 # == Synopsys
 # Extension for Ruby <code>Enumerable</code> module
 #
@@ -33,47 +37,12 @@ module Enumerable
 
     # move +block+ to +patterns+ if no +patterns+ given
     patterns, block = [block], nil if block_given? && patterns.empty?
-    conditions = patterns.map { |pattern| filter_condition(pattern) }
-
     # match elements against all patterns using +OR+ operator
-    filtered = select do |obj|
-      conditions.any? { |condition| condition.call(obj) }
-    end
+    conditions = Filter.or(*patterns)
+
+    filtered = select { |obj| conditions === obj }
 
     # also transform elements if block given
     block ? filtered.map(&block) : filtered
-  end
-
-  private
-  def filter_condition(pattern) #:nodoc:
-    # create filter condition from pattern
-    case pattern
-      when NilClass then proc { true }
-
-      when Class, Module then
-        proc do |e|
-          e.is_a?(Class) || e.is_a?(Module) ?
-              e <= pattern :
-              e.is_a?(pattern)
-        end
-
-      when Symbol, Proc, Method then pattern.to_proc
-
-      when Array then # enum.filter [:even?, :positive?, :cool?, proc { |n| n < 10 }]
-        proc do |e|
-          pattern.all? { |condition| filter_condition(condition).call(e) }
-        end
-
-      when Hash then # enum.filter :to_i => :even?, :ceil => :odd?
-        proc do |e|
-          pattern.all? do |attribute, condition|
-            filter_condition(condition).call(attribute.to_proc.call(e))
-          end
-        end
-
-      when TrueClass, FalseClass then proc { |e| !!e == pattern }
-
-      else proc { |e| pattern === e } # otherwise - String, Regexp, Numeric etc.
-    end
   end
 end
