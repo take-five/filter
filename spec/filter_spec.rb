@@ -53,4 +53,8 @@ describe Enumerable do
     [0, false, 2, nil].filter(true).should == [0, 2]
     [0, false, 2, nil].filter(false).should == [false, nil]
   end
+
+  it "should match using OR operator" do
+    [0, 2, 3, 4].filter(:zero?, :odd?).should == [0, 3]
+  end
 end
