@@ -19,5 +19,10 @@ module Filter
       Filter.or(self, other)
     end
     alias | or
+
+    def not
+      Filter.not(self)
+    end
+    alias ~ not
   end
 end

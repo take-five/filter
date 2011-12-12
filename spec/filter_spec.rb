@@ -66,5 +66,7 @@ describe Enumerable do
     # 0 and negative
     conditions = Filter.and(:zero?, :even?) | proc { |n| n < 0 }
     [-1, 0, 1].filter(conditions).should == [-1, 0]
+
+    [1, 2, 3].filter(Filter.not(:odd?)).should == [2]
   end
 end

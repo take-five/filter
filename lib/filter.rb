@@ -1,6 +1,7 @@
 require "filter/condition"
 require "filter/or"
 require "filter/and"
+require "filter/not"
 
 # == Synopsys
 # Extension for Ruby <code>Enumerable</code> module
